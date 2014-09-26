@@ -101,6 +101,7 @@ extern int smb2_push_mandatory_locks(struct cifsFileInfo *cfile);
  * are contained within these calls.
  */
 extern int SMB2_negotiate(const unsigned int xid, struct cifs_ses *ses);
+extern int SMB31_negotiate(const unsigned int xid, struct cifs_ses *ses);
 extern int SMB2_sess_setup(const unsigned int xid, struct cifs_ses *ses,
 			   const struct nls_table *nls_cp);
 extern int SMB2_logoff(const unsigned int xid, struct cifs_ses *ses);

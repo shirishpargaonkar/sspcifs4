@@ -280,6 +280,8 @@ static const match_table_t cifs_smb_version_tokens = {
 	{ Smb_21, SMB21_VERSION_STRING },
 	{ Smb_30, SMB30_VERSION_STRING },
 	{ Smb_302, SMB302_VERSION_STRING },
+	{ Smb_31, SMB31_VERSION_STRING },
+	{ Smb_version_err, NULL }
 };
 
 static int ip_connect(struct TCP_Server_Info *server);
@@ -1133,6 +1135,10 @@ cifs_parse_smb_version(char *value, struct smb_vol *vol)
 	case Smb_302:
 		vol->ops = &smb30_operations; /* currently identical with 3.0 */
 		vol->vals = &smb302_values;
+		break;
+	case Smb_31:
+		vol->ops = &smb31_operations; /* almost identical with 3.0 */
+		vol->vals = &smb31_values;
 		break;
 #endif
 	default:

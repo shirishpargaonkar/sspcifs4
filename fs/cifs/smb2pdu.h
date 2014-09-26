@@ -195,11 +195,54 @@ struct smb2_negotiate_req {
 	__le16 Dialects[1]; /* One dialect (vers=) at a time for now */
 } __packed;
 
+struct smb31_neg_context {
+	__le16 ContextType;
+	__le16 DataLength;
+	__le32 Reserved;
+} __packed;
+
+#define SMB2_PREAUTH_INTEGRITY_CAPABILITIES	1
+#define SMB2_ENCRYPTION_CAPABILITIES		2
+struct smb31_negotiate_contexts {
+	/* SMB2_PREAUTH_INTEGRITY_CAPABILITIES */
+	/*    ContextType =  1, DataLength = 26 */
+	struct smb31_neg_context ctxt1;
+	__le16 HashAlgorithmCount; /* 1 */
+	__le16 SaltLength;  /* 0x20 */
+	__le16 HashAlgorithm; /* 1 = SHA-512 */
+	__u8 Salt[32]; /* BB VERIFYME */
+	__le16 Reserved;
+	/* SMB2_ENCRYPTION_CAPABILITIES */
+	/*    ContextType = 2, DataLength = 6 */
+	struct smb31_neg_context ctxt2;
+	__le16 CipherCount; /* 2 */
+	__le16 Cipher[2];  /* 2 then 1 */ /* Pick AES-128-CCM or AES-128-GCM */
+} __packed;
+
+struct smb31_negotiate_req {
+	struct smb2_hdr hdr;
+	__le16 StructureSize; /* Must be 36 */
+	__le16 DialectCount;
+	__le16 SecurityMode;
+	__le16 Reserved;	/* MBZ */
+	__le32 Capabilities;
+	__u8   ClientGUID[SMB2_CLIENT_GUID_SIZE];
+	/* In SMB3.02 (and earlier) next three were MBZ le64 ClientStartTime */
+	__le32 NegotiateContextOffset; /* SMB3.1 only */
+	/* Set count to 1 if CCM only?? since we may only know how to do CCM */
+	__le16 NegotiateContextCount;  /* set to 2 */
+	__le16 Reserved2;
+	__le16 Dialects[1]; /* One dialect (vers=) at a time for now */
+	__le16 Reserved3; /* pad */
+	struct smb31_negotiate_contexts neg_ctx;
+} __packed;
+
 /* Dialects */
 #define SMB20_PROT_ID 0x0202
 #define SMB21_PROT_ID 0x0210
 #define SMB30_PROT_ID 0x0300
 #define SMB302_PROT_ID 0x0302
+#define SMB31_PROT_ID 0x0310
 #define BAD_PROT_ID   0xFFFF
 
 /* SecurityMode flags */
@@ -222,7 +265,7 @@ struct smb2_negotiate_rsp {
 	__le16 StructureSize;	/* Must be 65 */
 	__le16 SecurityMode;
 	__le16 DialectRevision;
-	__le16 Reserved;	/* MBZ */
+	__le16 NegotiateContextCount;	/* Prior to SMB3.1 was Reserved & MBZ */
 	__u8   ServerGUID[16];
 	__le32 Capabilities;
 	__le32 MaxTransactSize;
@@ -232,7 +275,7 @@ struct smb2_negotiate_rsp {
 	__le64 ServerStartTime;
 	__le16 SecurityBufferOffset;
 	__le16 SecurityBufferLength;
-	__le32 Reserved2;	/* may be any value, ignore */
+	__le32 NegotiateContextOffset;	/* Pre:SMB3.1 was reserved/ignored */
 	__u8   Buffer[1];	/* variable length GSS security buffer */
 } __packed;
 
